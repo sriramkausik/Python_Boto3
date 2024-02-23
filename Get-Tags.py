@@ -1,6 +1,10 @@
 import boto3
-def terminateEC2withEBS():
-    print("This function will terminate EC2 instances running with EBS volume")
+def GetTags():
+    #"This function will get the tags for the all the instances (Status Running) in AWS and also uses try except block to handle exceptions incase if an instance is not having a tag"
+   #Refernece used : https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/describe_instances.html
+    print("============================================================================")
+    print ('Fetching the Ec2 instance information from AWS console')
+    print("============================================================================")
     client = boto3.client('ec2')
     response = client.describe_instances(
     Filters=[
@@ -14,20 +18,30 @@ def terminateEC2withEBS():
 
           
      ],
-         InstanceIds=[
-        'i-08be3ede7693d334d','i-0c03665bd9f906cab'
-    ],
+        
     )
-
-    active_instance_ids = set()
-    for instance in response['Reservations']:
-        for ins in instance['Instances']:
-            for inst in ins['Tags']:
-                active_instance_ids.add(inst['Key'])
-    print(active_instance_ids)
-        #id= instance.id
-        #print("Hi I'm inside for loop fetching the running instances")
-        #instanceid=instance.block-device-mapping.volume-id
-        #print('id')
+    #print(response)
+    active_instance_ids = ['====INSTANCE ID====='] #List for storing the instance IDs 
+    Tagsassociated = ['=====TAGS====='] # List for storing the tags
+    for res in response['Reservations']: #Refer Request Syntax from the above given URL and traverse until it finds an instance id using recurse for loop. 
+        for instance in res['Instances']:
+            active_instance_ids.append(instance['InstanceId'])
     
-terminateEC2withEBS()
+
+    for res in response['Reservations']: #Refer Request Syntax from the above given URL and traverse until it finds an Tag key using recurse for loop. 
+        for instance in res['Instances']:
+            try: 
+                for insid in instance['Tags']:
+                    Tagsassociated.append(insid['Key'])
+            except KeyError: #Handling an error incase if an EC2 instance doesn't have any Tags.
+                Tagsassociated.append('No Keys found')
+
+    count = len(active_instance_ids)
+    #print(count)
+    print("============================================================================")
+    for i in range(count):
+        
+        print(active_instance_ids[i] + " " + " "  + " " + Tagsassociated[i] )
+    print("============================================================================")
+
+GetTags()
